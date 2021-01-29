@@ -22,7 +22,6 @@ namespace WpfDataBase {
     /// </summary>
     public partial class MainWindow : Window {
 
-        BitmapImage notPicBmp = null;
         DataRowView drv; //選択しているレコードを格納
 
         infosys202000DataSet infosys202000DataSet;
@@ -34,7 +33,6 @@ namespace WpfDataBase {
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e) {
-            notPicBmp = path2Image("notPic.jpg");
             infosys202000DataSet = ((infosys202000DataSet)(this.FindResource("infosys202000DataSet")));
             // テーブル CarReport にデータを読み込みます。必要に応じてこのコードを変更できます。
             infosys202000DataSetCarReportTableAdapter = new infosys202000DataSetTableAdapters.CarReportTableAdapter();
@@ -58,7 +56,7 @@ namespace WpfDataBase {
                 pictureImage.Source = Byte2Image((byte[])drv.Row[6]);
             }
             catch (Exception) {
-                pictureImage.Source = notPicBmp;
+                pictureImage.Source = null;
             }
         }
 
@@ -80,12 +78,12 @@ namespace WpfDataBase {
             // BitmapImageにファイルから画像を読み込む
             BitmapImage m_bitmap = new BitmapImage();
             m_bitmap.BeginInit();
-            m_bitmap.UriSource = new Uri(filename,UriKind.Relative);
+            m_bitmap.UriSource = new Uri(filename);
             m_bitmap.EndInit();
             return m_bitmap;
         }
 
-        //バイト配列をイメージへ変換
+        //バイト配列をイメージへ変換（ＤＢからコントロール）
         private static BitmapImage Byte2Image(byte[] imageData) {
             if (imageData == null || imageData.Length == 0) return null;
             var image = new BitmapImage();
@@ -102,7 +100,7 @@ namespace WpfDataBase {
             return image;
         }
 
-        //イメージをバイト配列へ変換
+        //イメージをバイト配列へ変換(コントロールからＤＢ)
         private static byte[] Image2Byte(BitmapImage m_bitmap) {
             TypeConverter converter = TypeDescriptor.GetConverter(typeof(BitmapImage));
             byte[] data = null;
@@ -128,14 +126,17 @@ namespace WpfDataBase {
             drv.Row[3] = makerTextBox.Text;
             drv.Row[4] = nameTextBox.Text;
             drv.Row[5] = reportTextBox.Text;
-            drv.Row[6] = Image2Byte((BitmapImage)pictureImage.Source);
-                
+            if (pictureImage.Source != null) {
+                drv.Row[6] = Image2Byte((BitmapImage)pictureImage.Source);
+            } else {
+                drv.Row[6] = null;
+            }
             infosys202000DataSetCarReportTableAdapter.Update(infosys202000DataSet.CarReport);
 
         }
 
         private void btClear_Click(object sender, RoutedEventArgs e) {
-
+            pictureImage.Source = null;
         }
     }
 }
